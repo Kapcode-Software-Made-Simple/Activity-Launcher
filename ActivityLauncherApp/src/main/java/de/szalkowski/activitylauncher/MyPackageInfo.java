@@ -20,14 +20,23 @@ public class MyPackageInfo implements Comparable<MyPackageInfo> {
     protected String name;
     protected MyActivityInfo[] activities;
 
-    public static MyPackageInfo fromPackageInfo(PackageManagerCache cache, PackageInfo info, Configuration config) throws PackageManager.NameNotFoundException {
+    public static MyPackageInfo fromPackageInfo(PackageManagerCache cache, PackageInfo info, Configuration config)  {
         var pm = cache.getPackageManager();
         var myInfo = new MyPackageInfo();
         myInfo.package_name = info.packageName;
         ApplicationInfo app = info.applicationInfo;
 
         if (app != null) {
-            myInfo.name = getLocalizedName(config, pm, myInfo, app);
+            try {
+                myInfo.name = getLocalizedName(config, pm, myInfo, app);
+            } catch (PackageManager.NameNotFoundException | RuntimeException ignored) {
+
+            }
+            if(myInfo.name==null){
+                //a way to get name of app if it is null (it will also fail to get on getLocalizedName)
+
+                myInfo.name=info.applicationInfo.loadLabel(pm).toString();
+            }
             try {
                 myInfo.icon = pm.getApplicationIcon(app);
             } catch (Exception e) {
